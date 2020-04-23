@@ -39,6 +39,7 @@ private slots:
     int partition(int,int);
     void heapSort(int);
     void heapify(int,int);
+    bool RatInAMazeHashMap(int x, int y);
     void on_pushButton_4_clicked();
 
     void on_pushButton_5_clicked();

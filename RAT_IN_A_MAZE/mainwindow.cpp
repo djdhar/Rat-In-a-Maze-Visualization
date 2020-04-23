@@ -38,6 +38,7 @@ QVector<QPair<int,int> >PolygonPoints;
 QVector<QPair<int,int> >Base;
 QVector<MyPoint > MyPoints;
 QVector<QPair<int,int> >Window;
+QMap<QPair<int,int>,bool> Visited;
 QColor edgeColor(255,255,255);
 #define size_of_the_frame 900
 #define PI 3.14159
@@ -206,6 +207,7 @@ void MainWindow::Mouse_Pressed()
 
 void MainWindow:: SpeacialClearance(void){
     ClearScreen();
+    Visited.clear();
     point(sourceImage,size_of_the_frame-2,size_of_the_frame-2,2,255,255,0);
 }
 
@@ -214,6 +216,33 @@ void MainWindow:: SpeacialClearance(void){
 void MainWindow::on_pushButton_clicked()
 {
     SpeacialClearance();
+}
+
+bool MainWindow::RatInAMazeHashMap(int x, int y){
+
+    if(x<0 || y<0 || x>size_of_the_frame || y>size_of_the_frame)
+        return false;
+    else if(sourceImage.pixelColor(x,y)==QColor(0,255,0)){
+        return false;
+    }
+    else if(sourceImage.pixelColor(x,y)==QColor(255,255,0))
+        return true;
+
+    else if(Visited[qMakePair(x,y)]==false && (sourceImage.pixelColor(x,y)==QColor(0,0,0) || sourceImage.pixelColor(x,y)==QColor(255,255,255))&& x>0 && y>0 && x<size_of_the_frame && y<size_of_the_frame){
+        point(sourceImage,x,y,3);
+        delay(DELAYTIME);
+        bool right =  RatInAMazeHashMap(x+pixelsize,y);
+        if(right) return right;
+        bool down =   RatInAMazeHashMap(x,y+pixelsize);
+        if(down) return down;
+
+        Visited[qMakePair(x,y)]=true;
+        point(sourceImage,x,y,3,0,0,0);
+        delay(DELAYTIME);
+        return false;
+
+    }
+    else return false;
 }
 
 bool MainWindow::RatInAMaze(int x, int y){
@@ -234,6 +263,7 @@ bool MainWindow::RatInAMaze(int x, int y){
         bool down =   RatInAMaze(x,y+pixelsize);
         if(down) return down;
 
+
         point(sourceImage,x,y,3,0,0,0);
         delay(DELAYTIME);
         return false;
@@ -246,6 +276,7 @@ void MainWindow::on_pushButton_2_clicked()
 {
     ui->label_2->setText("");
     ui->pushButton->setEnabled(false);
+    Visited.clear();
     point(sourceImage,size_of_the_frame-2,size_of_the_frame-2,2,255,255,0);
     int x = pixelsize/2;
     int y = pixelsize/2;
@@ -260,8 +291,19 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    insertionSort();
-    PrintVectors();
+    ui->label_2->setText("");
+    ui->pushButton->setEnabled(false);
+    Visited.clear();
+    point(sourceImage,size_of_the_frame-2,size_of_the_frame-2,2,255,255,0);
+    int x = pixelsize/2;
+    int y = pixelsize/2;
+    bool res = RatInAMazeHashMap(x,y);
+    cout<<res<<endl;
+    if(res)
+        ui->label_2->setText("REACHED");
+    else
+         ui->label_2->setText("FAILED TO REACH");
+    ui->pushButton->setEnabled(true);
 }
 void MainWindow::insertionSort()
 {
